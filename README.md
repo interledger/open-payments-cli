@@ -52,7 +52,7 @@ RECEIVING_WALLET_ADDRESS=
 
 Creates an incoming payment on the receiving wallet address for an optionally specified incoming amount.
 If no saved grant in the session, requests a default grant before creating an incoming payment.
-Saves the incoming payment (and possibly the grant) in the session.
+Then, saves the incoming payment and possibly its corresponding grant in the session.
 
 ### `ip:complete`
 
@@ -66,7 +66,7 @@ Fetches the incoming payment previously created in the session.
 
 Creates an quote on the sending wallet address for an optionally specified debit amount.
 If there is no existing quote grant in the session, requests a default grant before creating a quote.
-Saves the quote (and possibly the grant) in the session.
+Then, saves the quote and possibly its corresponding grant in the session.
 
 ### `quote:get`
 
@@ -74,7 +74,7 @@ Fetches the quote previously created in the session.
 
 ### `op:create`
 
-Creates an outgoing payment on the sending wallet address. If there is no existing saved grant in the session, requests a default grant before creating a quote.
+Creates an outgoing payment on the sending wallet address. If there is no existing saved grant in the session, requests a default grant, prompts to complete the interaction and creates the outgoing payment. Then, saves the outgoing payment and its corresponding grant in the session.
 
 ### `op:get`
 
@@ -84,9 +84,9 @@ Fetches an outgoing payment previously created in the session.
 
 Initiates an outgoing payment grant request. After the pending grant is requested, a prompt will apprear to enter the URL of the completed redirect site of the interaction. The URL must contain a `interact_ref`. Once entered, the grant will be finalized, and outgoing payments can now be created.
 
-### `session:wa:set-sending <walletAddress>`
+### `session:get`
 
-Sets the sending wallet address for the session to be used in requests going forward.
+Displays the information of the current session.
 
 ### `session:wa:set-receiving <walletAddress>`
 
@@ -107,7 +107,7 @@ op:create
 
 calling `scenario scenario-1.txt` will run the given commands sequentially in the session.
 
-This example scenario will initiate a payment between `https://ilp.five.rafikilabs.com/ffc52473` and `https://ilp.five.rafikilabs.com/a76f14b7`. Like a normal session, `grant:op` will prompt you to enter the URL of the resulting redirect site of the interaction, after which it will run the final `op:create` command to create the outgoing payment.
+The commands in the example scenario file will initiate a payment between `https://ilp.five.rafikilabs.com/ffc52473` and `https://ilp.five.rafikilabs.com/a76f14b7`. Like a normal session, `grant:op` will prompt you to enter the URL of the resulting redirect site of the interaction, after which it will run the final `op:create` command to create the outgoing payment.
 
 ## Logging
 
