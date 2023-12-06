@@ -32,21 +32,21 @@ RECEIVING_WALLET_ADDRESS=
 
 ## Commands
 
-| Command                                    | Description                                     |
-| ------------------------------------------ | ----------------------------------------------- |
-| `ip:create <incomingAmount?>`              | Create an incoming payment                      |
-| `ip:complete`                              | Complete an incoming payment                    |
-| `ip:get`                                   | Retrieve an incoming payment                    |
-| `quote:create <debitAmount?>`              | Create a quote                                  |
-| `quote:get`                                | Retrieve a quote                                |
-| `op:create`                                | Create an outgoing payment                      |
-| `op:get`                                   | Retrieve an outgoing payment                    |
-| `grant:op`                                 | Request a grant for an outgoing payment         |
-| `session:get`                              | Displays the information of the current session |
-| `session:wa:set-sending <walletAddress>`   | Set sending wallet address for the session      |
-| `session:wa:set-receiving <walletAddress>` | Set receiving wallet address for the session    |
-| `scenario <fileName>`                      | Run a list of commands from a file              |
-| `exit`                                     | Exits the application                           |
+| Command                                                                             | Description                                     |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------- |
+| [`ip:create <incomingAmount?>`](#ipcreate-incomingamount)                           | Create an incoming payment                      |
+| [`ip:complete`](#ipcomplete)                                                        | Complete an incoming payment                    |
+| [`ip:get`](#ipget)                                                                  | Retrieve an incoming payment                    |
+| [`quote:create <debitAmount?>`](#quotecreate-debitamount)                           | Create a quote                                  |
+| [`quote:get`](#quoteget)                                                            | Retrieve a quote                                |
+| [`op:create`](#opcreate)                                                            | Create an outgoing payment                      |
+| [`op:get`](#opget)                                                                  | Retrieve an outgoing payment                    |
+| [`grant:op` ](#grantop)                                                             | Request a grant for an outgoing payment         |
+| [`session:get`](#sessionget)                                                        | Displays the information of the current session |
+| [`session:wa:set-receiving <walletAddress>`](#sessionwaset-receiving-walletaddress) | Set sending wallet address for the session      |
+| [`session:wa:set-sending <walletAddress>`](#sessionwaset-receiving-walletaddress)   | Set receiving wallet address for the session    |
+| [`scenario <fileName>`](#scenario-filename)                                         | Run a list of commands from a file              |
+| [`exit`](#exit)                                                                     | Exits the application                           |
 
 ### `ip:create <incomingAmount?>`
 
@@ -108,6 +108,10 @@ op:create
 calling `scenario scenario-1.txt` will run the given commands sequentially in the session.
 
 The commands in the example scenario file will initiate a payment between `https://ilp.five.rafikilabs.com/ffc52473` and `https://ilp.five.rafikilabs.com/a76f14b7`. Like a normal session, `grant:op` will prompt you to enter the URL of the resulting redirect site of the interaction, after which it will run the final `op:create` command to create the outgoing payment.
+
+### `exit`
+
+Exists the application.
 
 ## Logging
 
