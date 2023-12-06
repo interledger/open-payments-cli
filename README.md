@@ -90,7 +90,11 @@ Displays the information of the current session.
 
 ### `session:wa:set-receiving <walletAddress>`
 
-Sets the receiving wallet address for the session to be used in requests going forward.
+Sets the receiving wallet address for the session to be used in incoming payment requests going forward.
+
+### `session:wa:set-sending <walletAddress>`
+
+Sets the sending wallet address for the session to be used in requests for quotes and outgoing payments going forward.
 
 ### `scenario <fileName>`
 
