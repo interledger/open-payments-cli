@@ -147,22 +147,27 @@ async function promptToConfigureClient() {
 }
 
 async function initializeFromConfig() {
-  logger.info(config, "Loaded from config.");
+  if (!config) {
+    logger.info("Could not load config from .env file.");
+    process.exit();
+  }
 
   if (!config["CLIENT_WALLET_ADDRESS"]) {
     logger.info("Missing clientWalletAddress");
-    return;
+    process.exit();
   }
 
   if (!config["KEY_ID"]) {
     logger.info("Missing keyId");
-    return;
+    process.exit();
   }
 
   if (!config["PRIVATE_KEY"]) {
     logger.info("Missing privateKey");
-    return;
+    process.exit();
   }
+
+  logger.info(config, "Loaded from config.");
 
   const client = await createAuthenticatedClient({
     logger,

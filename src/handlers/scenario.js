@@ -9,29 +9,40 @@ async function runScenario(inputHandling, deps, session, args) {
     return;
   }
 
-  const file = await open(fileName);
+  let file;
+
+  try {
+    file = await open(fileName);
+  } catch {
+    deps.logger.error(`Could not open file: ${fileName}`);
+    return;
+  }
 
   const scenario = [];
 
-  let lines = 1;
-  for await (const line of file.readLines()) {
-    if (!line) {
-      continue;
-    }
+  try {
+    let lines = 1;
+    for await (const line of file.readLines()) {
+      if (!line) {
+        continue;
+      }
 
-    const [command, ..._] = line.split(" ");
-    if (!availableCommands.has(command)) {
-      deps.logger.info(`Unrecognized command on line ${line}: ${command}`);
-      return;
-    }
+      const [command, ..._] = line.split(" ");
+      if (!availableCommands.has(command)) {
+        deps.logger.error(`Unrecognized command on line ${lines}: ${command}`);
+        break;
+      }
 
-    scenario.push(line);
-    lines++;
+      scenario.push(line);
+      lines++;
+    }
+  } finally {
+    await file.close();
   }
 
   for (let i = 0; i < scenario.length; i++) {
     const command = scenario[i];
-    deps.logger.info(`Running command ${i + 1}/${scenario.length} ${command}`);
+    deps.logger.info(`(${i + 1}/${scenario.length}) running ${command}`);
 
     try {
       await handleInput(deps, session, command);
