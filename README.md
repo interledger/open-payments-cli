@@ -32,7 +32,7 @@ RECEIVING_WALLET_ADDRESS=
 
 ## Wallet addresses
 
-When entering wallet addresses into the CLI (for initializing the client, or setting sending and receiving wallet addresses), you can use the `https://` prefix (`https://ilp.five.rafikilabs.com/alice`) or the `$` (`$ilp.five.rafikilabs.com/alice`) [payment pointer](https://paymentpointers.org) prefix.
+When entering wallet addresses into the CLI (for initializing the client, or setting sending and receiving wallet addresses), you can use the `https://` prefix (`https://ilp.five.rafikilabs.com/alice`) or the `$` [payment pointer](https://paymentpointers.org) prefix (`$ilp.five.rafikilabs.com/alice`).
 
 ## Commands
 
