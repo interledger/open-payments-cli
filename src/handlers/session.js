@@ -1,3 +1,5 @@
+const { parseWalletAddress } = require("../utils");
+
 function getSession(deps, session) {
   deps.logger.info(
     {
@@ -10,7 +12,7 @@ function getSession(deps, session) {
 }
 
 async function getWalletAddress(deps, session, args) {
-  const walletAddressUrl = args[0];
+  const walletAddressUrl = parseWalletAddress(args[0]);
 
   try {
     new URL(walletAddressUrl);

@@ -24,6 +24,7 @@ const fs = require("fs");
 const inquirer = require("@inquirer/prompts");
 const pino = require("pino");
 const pretty = require("pino-pretty");
+const { parseWalletAddress } = require("./src/utils");
 
 if (!fs.existsSync("./logs")) {
   fs.mkdirSync("./logs");
@@ -42,7 +43,7 @@ const streams = [
       colorize: true,
       colorizeObjects: true,
       sync: true,
-      ignore: "pid,hostname,time",
+      ignore: "pid,hostname",
       translateTime: true,
     }),
   },
@@ -50,20 +51,21 @@ const streams = [
 
 const logger = pino({ level: "info" }, pino.multistream(streams));
 
-async function promptForWalletAddresses(client) {
+async function promptForWalletAddresses(client, session) {
   let sendingWalletAddress, receivingWalletAddress;
 
   await inquirer.input({
     message: `Enter sending wallet address:`,
     validate: async (input) => {
+      const walletAddessUrl = parseWalletAddress(input);
       try {
-        new URL(input);
+        new URL(walletAddessUrl);
       } catch {
         return false;
       }
 
       const fetchedSendingWalletAddress = await client.walletAddress.get({
-        url: input,
+        url: walletAddessUrl,
       });
       if (fetchedSendingWalletAddress) {
         sendingWalletAddress = fetchedSendingWalletAddress;
@@ -77,14 +79,15 @@ async function promptForWalletAddresses(client) {
   await inquirer.input({
     message: "Enter receiving wallet address:",
     validate: async (input) => {
+      const walletAddessUrl = parseWalletAddress(input);
       try {
-        new URL(input);
+        new URL(walletAddessUrl);
       } catch {
         return false;
       }
 
       const fetchedReceivingWalletAddress = await client.walletAddress.get({
-        url: input,
+        url: walletAddessUrl,
       });
       if (fetchedReceivingWalletAddress) {
         receivingWalletAddress = fetchedReceivingWalletAddress;
@@ -95,36 +98,44 @@ async function promptForWalletAddresses(client) {
 
   logger.info(receivingWalletAddress);
 
+  session.receivingWalletAddress = receivingWalletAddress;
+  session.sendingWalletAddress = sendingWalletAddress;
+
   return { sendingWalletAddress, receivingWalletAddress };
 }
 
-async function promptToConfigureClient() {
+async function promptToConfigureClient(session) {
   let possibleKeys;
 
-  const clientWalletAddress = await inquirer.input({
-    message: "Enter the wallet address to use for the client:",
-    validate: async (input) => {
-      try {
-        new URL(input);
-      } catch {
-        return false;
-      }
+  const clientWalletAddressUrl = parseWalletAddress(
+    await inquirer.input({
+      message: "Enter the wallet address to use for the client:",
+      validate: async (input) => {
+        const clientWalletAddressUrl = parseWalletAddress(input);
+        try {
+          new URL(clientWalletAddressUrl);
+        } catch {
+          return false;
+        }
 
-      const keyResponse = await (await fetch(`${input}/jwks.json`)).json();
+        const keyResponse = await (
+          await fetch(`${clientWalletAddressUrl}/jwks.json`)
+        ).json();
 
-      if (!keyResponse.keys || keyResponse.keys.length === 0) {
-        console.log("\n");
-        logger.info(
-          "No configured keys found for wallet address. Please view the README for how to create developer keys."
-        );
-        process.exit(0);
-      }
+        if (!keyResponse.keys || keyResponse.keys.length === 0) {
+          console.log("\n");
+          logger.info(
+            "No configured keys found for wallet address. Please view the README for how to create developer keys."
+          );
+          process.exit(0);
+        }
 
-      possibleKeys = keyResponse.keys;
+        possibleKeys = keyResponse.keys;
 
-      return true;
-    },
-  });
+        return true;
+      },
+    })
+  );
 
   const keyId = await inquirer.select({
     message: "Select the private key id:",
@@ -138,15 +149,19 @@ async function promptToConfigureClient() {
     default: "private-key.pem",
   });
 
+  session.vars.CLIENT_WALLET_ADDRESS = clientWalletAddressUrl;
+  session.vars.PRIVATE_KEY = privateKey;
+  session.vars.KEY_ID = keyId;
+
   return createAuthenticatedClient({
     logger,
     keyId,
     privateKey,
-    walletAddressUrl: clientWalletAddress,
+    walletAddressUrl: clientWalletAddressUrl,
   });
 }
 
-async function initializeFromConfig() {
+async function initializeFromConfig(session) {
   if (!config) {
     logger.info("Could not load config from .env file.");
     process.exit();
@@ -173,13 +188,24 @@ async function initializeFromConfig() {
     logger,
     keyId: config["KEY_ID"],
     privateKey: config["PRIVATE_KEY"],
-    walletAddressUrl: config["CLIENT_WALLET_ADDRESS"],
+    walletAddressUrl: parseWalletAddress(config["CLIENT_WALLET_ADDRESS"]),
   });
 
+  session.vars.CLIENT_WALLET_ADDRESS = config["CLIENT_WALLET_ADDRESS"];
+  session.vars.PRIVATE_KEY = config["PRIVATE_KEY"];
+  session.vars.KEY_ID = config["KEY_ID"];
+
   const [sendingWalletAddress, receivingWalletAddress] = await Promise.all([
-    client.walletAddress.get({ url: config["SENDING_WALLET_ADDRESS"] }),
-    client.walletAddress.get({ url: config["RECEIVING_WALLET_ADDRESS"] }),
+    client.walletAddress.get({
+      url: parseWalletAddress(config["SENDING_WALLET_ADDRESS"]),
+    }),
+    client.walletAddress.get({
+      url: parseWalletAddress(config["RECEIVING_WALLET_ADDRESS"]),
+    }),
   ]);
+
+  session.receivingWalletAddress = receivingWalletAddress;
+  session.sendingWalletAddress = sendingWalletAddress;
 
   logger.info(sendingWalletAddress, "Sending wallet address");
   logger.info(receivingWalletAddress, "Receiving wallet address");
@@ -187,11 +213,11 @@ async function initializeFromConfig() {
   return { client, receivingWalletAddress, sendingWalletAddress };
 }
 
-async function initializeByPrompt() {
-  const client = await promptToConfigureClient();
+async function initializeByPrompt(session) {
+  const client = await promptToConfigureClient(session);
 
   const { receivingWalletAddress, sendingWalletAddress } =
-    await promptForWalletAddresses(client);
+    await promptForWalletAddresses(client, session);
 
   return { client, receivingWalletAddress, sendingWalletAddress };
 }
@@ -203,13 +229,10 @@ async function initSession() {
     receivingWalletAddress: undefined,
   };
 
-  const { receivingWalletAddress, sendingWalletAddress, client } =
+  const { client } =
     process.argv[2] === "--from-config"
-      ? await initializeFromConfig()
-      : await initializeByPrompt();
-
-  session.receivingWalletAddress = receivingWalletAddress;
-  session.sendingWalletAddress = sendingWalletAddress;
+      ? await initializeFromConfig(session)
+      : await initializeByPrompt(session);
 
   const deps = {
     logger,
