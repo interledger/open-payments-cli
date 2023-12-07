@@ -30,6 +30,10 @@ SENDING_WALLET_ADDRESS=
 RECEIVING_WALLET_ADDRESS=
 ```
 
+## Wallet addresses
+
+When entering wallet addresses into the CLI (for initializing the client, or setting sending and receiving wallet addresses), you can use the `https://` prefix (`https://ilp.five.rafikilabs.com/alice`) or the `$` (`$ilp.five.rafikilabs.com/alice`) [payment pointer](https://paymentpointers.org) prefix.
+
 ## Commands
 
 | Command                                                                             | Description                                     |
@@ -41,7 +45,7 @@ RECEIVING_WALLET_ADDRESS=
 | [`quote:get`](#quoteget)                                                            | Retrieve a quote                                |
 | [`op:create`](#opcreate)                                                            | Create an outgoing payment                      |
 | [`op:get`](#opget)                                                                  | Retrieve an outgoing payment                    |
-| [`grant:op` ](#grantop)                                                             | Request a grant for an outgoing payment         |
+| [`grant:op <debitAmount?> <receiveAmount?>` ](#grantop-debitamount-receiveamount)   | Request a grant for an outgoing payment         |
 | [`session:get`](#sessionget)                                                        | Displays the information of the current session |
 | [`session:wa:set-receiving <walletAddress>`](#sessionwaset-receiving-walletaddress) | Set sending wallet address for the session      |
 | [`session:wa:set-sending <walletAddress>`](#sessionwaset-receiving-walletaddress)   | Set receiving wallet address for the session    |
@@ -80,9 +84,9 @@ Creates an outgoing payment on the sending wallet address. If there is no existi
 
 Fetches an outgoing payment previously created in the session.
 
-### `grant:op`
+### `grant:op <debitAmount?> <receiveAmount?>`
 
-Initiates an outgoing payment grant request. After the pending grant is requested, a prompt will apprear to enter the URL of the completed redirect site of the interaction. The URL must contain a `interact_ref`. Once entered, the grant will be finalized, and outgoing payments can now be created.
+Initiates an outgoing payment grant request. If no `debitAmount` or `receiveAmount` provided, uses the amounts from the created quote of the session. After the pending grant is requested, a prompt will apprear to enter the URL of the completed redirect site of the interaction. The URL must contain a `interact_ref`. Once entered, the grant will be finalized, and outgoing payments can now be created.
 
 ### `session:get`
 
