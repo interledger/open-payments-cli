@@ -119,7 +119,7 @@ The commands in the example scenario file will initiate a payment between `https
 
 ### `exit`
 
-Exists the application.
+Exits the application.
 
 ## Logging
 
