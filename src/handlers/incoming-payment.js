@@ -80,7 +80,7 @@ async function createIncomingPayment(deps, session, args) {
     {
       walletAddress: receivingWalletAddress.id,
       metadata: {
-        description: "Hi from the CLI :)",
+        description: `Created via open-payments-cli (session: ${session.id})`,
       },
       ...(incomingAmount
         ? {

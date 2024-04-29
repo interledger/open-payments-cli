@@ -3,6 +3,7 @@ const { parseWalletAddress } = require("../utils");
 function getSession(deps, session) {
   deps.logger.info(
     {
+      id: session.id,
       vars: session.vars,
       receivingWalletAddress: session.receivingWalletAddress,
       sendingWalletAddress: session.sendingWalletAddress,
