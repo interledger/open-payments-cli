@@ -30,10 +30,12 @@ if (!fs.existsSync("./logs")) {
   fs.mkdirSync("./logs");
 }
 
+const sessionId = Date.now();
+
 const streams = [
   {
     stream: pino.destination({
-      dest: `./logs/${Date.now()}.log`,
+      dest: `./logs/${sessionId}.log`,
       append: true,
       sync: true,
     }),
@@ -224,6 +226,7 @@ async function initializeByPrompt(session) {
 
 async function initSession() {
   const session = {
+    id: sessionId,
     vars: {},
     sendingWalletAddress: undefined,
     receivingWalletAddress: undefined,

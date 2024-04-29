@@ -148,7 +148,7 @@ async function createOutgoingPayment(deps, session, args) {
         walletAddress: sendingWalletAddress.id,
         quoteId: session.vars.QUOTE_ID,
         metadata: {
-          description: "Hi from the CLI :)",
+          description: `Created via open-payments-cli (session: ${session.id})`,
         },
       }
     );
