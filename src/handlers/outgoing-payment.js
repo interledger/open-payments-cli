@@ -1,6 +1,5 @@
-const inquirer = require("@inquirer/prompts");
 const { OpenPaymentsClientError } = require("@interledger/open-payments");
-const querystring = require("querystring");
+const { poll, sleep } = require("../utils");
 
 async function getOutgoingPaymentGrant(deps, session, args) {
   const debitAmount = args[0];
@@ -14,30 +13,21 @@ async function getOutgoingPaymentGrant(deps, session, args) {
     receiveAmount
   );
 
-  const interactRef = await getInteractRef(deps, session);
+  await sleep(2000); // Assume it will take a few seconds to navigate to the grant screen
 
-  if (!interactRef) {
-    return;
+  try {
+    const approvedPaymentGrant = await poll({
+      request: () => continueOutgoingPaymentGrant(deps, session),
+      timeoutMs: 30000,
+      pollingFrequencyMs: 1000,
+    });
+
+    return approvedPaymentGrant;
+  } catch (err) {
+    deps.logger.warn(
+      "Could not complete outgoing payment grant, try again with grant:op"
+    );
   }
-
-  session.vars.INTERACT_REF = interactRef;
-
-  const grant = await continueOutgoingPaymentGrant(deps, session);
-  return grant;
-}
-
-async function getInteractRef(deps, session) {
-  const urlWithInteractRef = await inquirer.input({
-    message: "Enter URL...",
-    validate: (input) =>
-      !!querystring.parse(input).interact_ref || input === "exit",
-  });
-
-  if (urlWithInteractRef === "exit") {
-    return;
-  }
-
-  return querystring.parse(urlWithInteractRef).interact_ref;
 }
 
 async function getPendingOutgoingPaymentGrant(
@@ -74,11 +64,6 @@ async function getPendingOutgoingPaymentGrant(
       },
       interact: {
         start: ["redirect"],
-        finish: {
-          method: "redirect",
-          uri: "https://example.com",
-          nonce: "456",
-        },
       },
     }
   );
@@ -96,13 +81,15 @@ async function getPendingOutgoingPaymentGrant(
 }
 
 async function continueOutgoingPaymentGrant(deps, session) {
-  const finalizedOutgoingPaymentGrant = await deps.client.grant.continue(
-    {
-      accessToken: session.vars.CONTINUE_TOKEN,
-      url: session.vars.CONTINUE_URL,
-    },
-    { interact_ref: session.vars.INTERACT_REF }
-  );
+  const finalizedOutgoingPaymentGrant = await deps.client.grant.continue({
+    accessToken: session.vars.CONTINUE_TOKEN,
+    url: session.vars.CONTINUE_URL,
+  });
+
+  if (!finalizedOutgoingPaymentGrant?.access_token?.value) {
+    deps.logger.info("Waiting on grant approval or rejection...");
+    return;
+  }
 
   session.vars.OUTGOING_PAYMENT_TOKEN =
     finalizedOutgoingPaymentGrant.access_token.value;
