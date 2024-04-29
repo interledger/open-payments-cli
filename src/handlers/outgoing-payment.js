@@ -6,20 +6,22 @@ async function getOutgoingPaymentGrant(deps, session, args) {
   const receiveAmount = args[1];
 
   deps.logger.info("Fetching outgoing payment grant...");
-  await getPendingOutgoingPaymentGrant(
+  const pendingOutgoingPaymentGrant = await getPendingOutgoingPaymentGrant(
     deps,
     session,
     debitAmount,
     receiveAmount
   );
 
-  await sleep(2000); // Assume it will take a few seconds to navigate to the grant screen
+  const pollingFrequencyMs = pendingOutgoingPaymentGrant.continue.wait * 1000;
+
+  await sleep(pollingFrequencyMs);
 
   try {
     const approvedPaymentGrant = await poll({
       request: () => continueOutgoingPaymentGrant(deps, session),
       timeoutMs: 30000,
-      pollingFrequencyMs: 1000,
+      pollingFrequencyMs,
     });
 
     return approvedPaymentGrant;
